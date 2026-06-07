@@ -55,6 +55,8 @@ def register_user(db_session, email: str, password: str):
         raise ValueError("An account with this email already exists.")
     try:
         return repository.create_user(db_session, email, hash_password(password))
+    except PasswordValidationError:
+        raise
     except PasswordHashingError:
         raise
     except Exception as exc:
