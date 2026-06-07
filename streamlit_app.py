@@ -9,7 +9,7 @@ from app.components.theme import card_header, inject_theme
 from app.db import repository
 from app.db.session import SessionLocal, init_db
 from app.services.analysis import analyze_financial_document
-from app.services.auth import authenticate_user, register_user
+from app.services.auth import PasswordHashingError, PasswordValidationError, authenticate_user, register_user
 from app.services.extractor import SUPPORTED_EXTENSIONS, extract_text_from_upload
 from app.services.report_export import build_analysis_pdf
 from app.utils.dashboard import derive_dashboard_metrics, derive_risk_level, render_bullet_list, render_metric_card
@@ -121,6 +121,8 @@ def render_auth():
                         st.session_state["user_id"] = str(user.id)
                         st.session_state["user_email"] = user.email
                         st.rerun()
+                except Exception:
+                    st.error("Invalid email or password.")
                 finally:
                     db.close()
 
@@ -130,17 +132,20 @@ def render_auth():
                 password = st.text_input("Create Password", type="password", placeholder="Use at least 8 characters")
                 submitted = st.form_submit_button("Create Workspace Access", use_container_width=True)
             if submitted:
-                if len(password) < 8:
-                    st.error("Password must be at least 8 characters.")
-                else:
-                    db = get_db()
-                    try:
-                        register_user(db, email, password)
-                        st.success("Account created. Log in to continue.")
-                    except ValueError as exc:
-                        st.error(str(exc))
-                    finally:
-                        db.close()
+                db = get_db()
+                try:
+                    register_user(db, email, password)
+                    st.success("Account created. Log in to continue.")
+                except PasswordValidationError as exc:
+                    st.error(str(exc))
+                except PasswordHashingError as exc:
+                    st.error(str(exc))
+                except ValueError as exc:
+                    st.error(str(exc))
+                except Exception:
+                    st.error("Unable to create account. Please use a shorter password.")
+                finally:
+                    db.close()
 
         st.markdown("</div>", unsafe_allow_html=True)
 
