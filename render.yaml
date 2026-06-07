@@ -26,5 +26,5 @@ services:
 databases:
   - name: statementiq-db
     databaseName: statementiq
-    plan: starter
+    plan: basic-256mb
     region: oregon
