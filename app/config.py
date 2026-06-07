@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4.1-mini"
     database_url: str = "sqlite:///statementiq.db"
     secret_key: str = "replace-me"
+    admin_email: str = "mrmoeve@gmail.com"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

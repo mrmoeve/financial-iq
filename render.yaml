@@ -12,6 +12,8 @@ services:
         value: 3.11.9
       - key: APP_NAME
         value: StatementIQ
+      - key: ADMIN_EMAIL
+        value: mrmoeve@gmail.com
       - key: OPENAI_MODEL
         value: gpt-4.1-mini
       - key: SECRET_KEY

@@ -72,18 +72,18 @@ class AuthFlowTest(unittest.TestCase):
         mock_db = object()
         with patch("app.services.auth.repository.get_user_by_email", return_value=None), patch(
             "app.services.auth.repository.create_user",
-            side_effect=lambda db, email, password_hash: {
-                "db": db,
-                "email": email,
-                "password_hash": password_hash,
-            },
+            side_effect=lambda db, email, password_hash: type(
+                "User",
+                (),
+                {"db": db, "id": "user-1", "email": email, "password_hash": password_hash, "is_admin": 0},
+            )(),
         ):
             created = register_user(mock_db, "user@example.com", "validpass123")
 
-        self.assertEqual(created["db"], mock_db)
-        self.assertEqual(created["email"], "user@example.com")
-        self.assertNotEqual(created["password_hash"], "validpass123")
-        self.assertTrue(verify_password("validpass123", created["password_hash"]))
+        self.assertEqual(created.db, mock_db)
+        self.assertEqual(created.email, "user@example.com")
+        self.assertNotEqual(created.password_hash, "validpass123")
+        self.assertTrue(verify_password("validpass123", created.password_hash))
 
     def test_account_creation_rejects_65_character_password(self):
         with patch("app.services.auth.repository.get_user_by_email", return_value=None):
@@ -92,7 +92,7 @@ class AuthFlowTest(unittest.TestCase):
 
     def test_login_succeeds_with_valid_credentials(self):
         password_hash = hash_password("validpass123")
-        user = type("User", (), {"password_hash": password_hash})()
+        user = type("User", (), {"email": "user@example.com", "password_hash": password_hash, "is_admin": 0})()
         with patch("app.services.auth.repository.get_user_by_email", return_value=user):
             authenticated = authenticate_user(object(), "user@example.com", "validpass123")
         self.assertIs(authenticated, user)
@@ -112,7 +112,7 @@ class AuthFlowTest(unittest.TestCase):
     def test_login_accepts_64_character_password(self):
         password = "a" * 64
         password_hash = hash_password(password)
-        user = type("User", (), {"password_hash": password_hash})()
+        user = type("User", (), {"email": "user@example.com", "password_hash": password_hash, "is_admin": 0})()
         with patch("app.services.auth.repository.get_user_by_email", return_value=user):
             authenticated = authenticate_user(object(), "user@example.com", password)
         self.assertIs(authenticated, user)

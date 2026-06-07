@@ -9,9 +9,11 @@ from app.components.theme import card_header, inject_theme
 from app.db import repository
 from app.db.session import SessionLocal, init_db
 from app.services.analysis import analyze_financial_document
+from app.services.audit import log_event
 from app.services.auth import PasswordHashingError, PasswordValidationError, authenticate_user, register_user
 from app.services.extractor import SUPPORTED_EXTENSIONS, extract_text_from_upload
 from app.services.report_export import build_analysis_pdf
+from app.utils.admin import is_admin_user
 from app.utils.dashboard import derive_dashboard_metrics, derive_risk_level, render_bullet_list, render_metric_card
 from app.utils.formatting import display_ratio_table_rows
 
@@ -38,6 +40,7 @@ def init_session_state():
     st.session_state.setdefault("current_company_name", None)
     st.session_state.setdefault("current_document_name", None)
     st.session_state.setdefault("current_document_type", None)
+    st.session_state.setdefault("is_admin", False)
 
 
 def _render_auth_hero():
@@ -118,8 +121,17 @@ def render_auth():
                     if not user:
                         st.error("Invalid email or password.")
                     else:
+                        log_event(
+                            db,
+                            action="login",
+                            user_email=user.email,
+                            target_type="auth",
+                            target_name="login",
+                            user_id=user.id,
+                        )
                         st.session_state["user_id"] = str(user.id)
                         st.session_state["user_email"] = user.email
+                        st.session_state["is_admin"] = is_admin_user(user)
                         st.rerun()
                 except Exception:
                     st.error("Invalid email or password.")
@@ -134,7 +146,15 @@ def render_auth():
             if submitted:
                 db = get_db()
                 try:
-                    register_user(db, email, password)
+                    user = register_user(db, email, password)
+                    log_event(
+                        db,
+                        action="signup",
+                        user_email=user.email,
+                        target_type="auth",
+                        target_name="signup",
+                        user_id=user.id,
+                    )
                     st.success("Account created. Log in to continue.")
                 except PasswordValidationError as exc:
                     st.error(str(exc))
@@ -154,6 +174,89 @@ def render_metric_grid(analysis: dict):
     metrics = derive_dashboard_metrics(analysis)
     html_grid = "".join(render_metric_card(metric) for metric in metrics)
     st.markdown(f"<div class='metric-grid'>{html_grid}</div>", unsafe_allow_html=True)
+
+
+def render_admin_panel():
+    db = get_db()
+    try:
+        users = repository.list_all_users(db)
+        analyses = repository.list_recent_analyses(db, limit=250)
+        audit_logs = repository.list_recent_audit_logs(db, limit=250)
+        metrics = repository.get_platform_metrics(db)
+    finally:
+        db.close()
+
+    st.markdown("<div class='panel-card'>", unsafe_allow_html=True)
+    st.markdown(card_header("Admin Console", "Platform administration", "Monitor account activity, uploaded documents, analysis volume, and operational health from a single internal workspace."), unsafe_allow_html=True)
+
+    metric_cards = [
+        {"label": "Users", "value": str(metrics["total_users"]), "note": "Total registered accounts.", "tone": "primary"},
+        {"label": "Documents", "value": str(metrics["total_analyses"]), "note": "Uploaded documents that produced saved analyses.", "tone": "success"},
+        {"label": "Audit Events", "value": str(metrics["total_audit_events"]), "note": "Tracked authentication and product actions.", "tone": "warning"},
+        {"label": "Avg Score", "value": str(metrics["average_health_score"] or "--"), "note": "Average financial health score across saved analyses.", "tone": "success"},
+        {"label": "System", "value": "Healthy" if DB_READY else "Degraded", "note": "Database connectivity and app startup status.", "tone": "success" if DB_READY else "danger"},
+    ]
+    st.markdown(f"<div class='metric-grid'>{''.join(render_metric_card(metric) for metric in metric_cards)}</div>", unsafe_allow_html=True)
+
+    admin_tabs = st.tabs(["Users", "Uploaded Documents", "Analysis History", "Platform Metrics", "System Health"])
+
+    with admin_tabs[0]:
+        user_rows = [
+            {
+                "Email": user.email,
+                "Admin": "Yes" if user.is_admin else "No",
+                "Created": user.created_at.strftime("%Y-%m-%d %H:%M UTC"),
+            }
+            for user in users
+        ]
+        st.dataframe(pd.DataFrame(user_rows), use_container_width=True, hide_index=True)
+
+    with admin_tabs[1]:
+        document_rows = [
+            {
+                "Company": analysis.company_name,
+                "Document": analysis.document_name,
+                "Type": analysis.document_type,
+                "Score": analysis.financial_health_score,
+                "Created": analysis.created_at.strftime("%Y-%m-%d %H:%M UTC"),
+            }
+            for analysis in analyses
+        ]
+        st.dataframe(pd.DataFrame(document_rows), use_container_width=True, hide_index=True)
+
+    with admin_tabs[2]:
+        audit_rows = [
+            {
+                "When": event.created_at.strftime("%Y-%m-%d %H:%M UTC"),
+                "User": event.user_email,
+                "Action": event.action,
+                "Target Type": event.target_type,
+                "Target": event.target_name,
+            }
+            for event in audit_logs
+        ]
+        st.dataframe(pd.DataFrame(audit_rows), use_container_width=True, hide_index=True)
+
+    with admin_tabs[3]:
+        st.write(
+            {
+                "total_users": metrics["total_users"],
+                "total_analyses": metrics["total_analyses"],
+                "total_audit_events": metrics["total_audit_events"],
+                "average_health_score": metrics["average_health_score"],
+            }
+        )
+
+    with admin_tabs[4]:
+        st.write(
+            {
+                "database_ready": DB_READY,
+                "history_loaded": True,
+                "storage_mode": "sqlite_or_configured_database",
+                "admin_email_bootstrap": st.session_state["user_email"] if st.session_state["is_admin"] else "configured",
+            }
+        )
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_analysis(analysis: dict, company_name: str, document_name: str, document_type: str):
@@ -280,7 +383,10 @@ def render_dashboard():
         )
     with header_right:
         st.markdown("<div style='height:0.3rem'></div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='signal-badge success'>{st.session_state['user_email']}</div>", unsafe_allow_html=True)
+        badge = "admin" if st.session_state["is_admin"] else "user"
+        badge_text = f"{st.session_state['user_email']} • {badge}"
+        badge_tone = "warning" if st.session_state["is_admin"] else "success"
+        st.markdown(f"<div class='signal-badge {badge_tone}'>{badge_text}</div>", unsafe_allow_html=True)
         st.markdown("<div style='height:0.65rem'></div>", unsafe_allow_html=True)
         if st.button("Log out", use_container_width=True):
             st.session_state["user_id"] = None
@@ -289,6 +395,7 @@ def render_dashboard():
             st.session_state["current_company_name"] = None
             st.session_state["current_document_name"] = None
             st.session_state["current_document_type"] = None
+            st.session_state["is_admin"] = False
             st.rerun()
 
     if selected_analysis:
@@ -332,6 +439,19 @@ def render_dashboard():
                 with st.spinner("Extracting text and generating analysis..."):
                     try:
                         extracted_text = extract_text_from_upload(uploaded_file)
+                        db = get_db()
+                        try:
+                            log_event(
+                                db,
+                                action="upload",
+                                user_email=st.session_state["user_email"],
+                                target_type="document",
+                                target_name=uploaded_file.name,
+                                user_id=st.session_state["user_id"],
+                                metadata_json={"document_type": document_type, "company_name": company_name},
+                            )
+                        finally:
+                            db.close()
                         analysis = analyze_financial_document(extracted_text)
                         db = get_db()
                         try:
@@ -345,6 +465,15 @@ def render_dashboard():
                                 analysis_json=analysis,
                                 financial_health_score=analysis["financial_health_score"],
                             )
+                            log_event(
+                                db,
+                                action="analysis_generation",
+                                user_email=st.session_state["user_email"],
+                                target_type="analysis",
+                                target_name=uploaded_file.name,
+                                user_id=st.session_state["user_id"],
+                                metadata_json={"company_name": company_name, "score": analysis["financial_health_score"]},
+                            )
                         finally:
                             db.close()
 
@@ -352,14 +481,27 @@ def render_dashboard():
                         st.success("Analysis complete.")
                         render_analysis(analysis, company_name, uploaded_file.name, document_type)
                         pdf_bytes = build_analysis_pdf(company_name, uploaded_file.name, analysis)
-                        st.download_button(
+                        if st.download_button(
                             "Download PDF Report",
                             data=pdf_bytes,
                             file_name=f"{company_name.lower().replace(' ', '_')}_statementiq_report.pdf",
                             mime="application/pdf",
                             use_container_width=True,
                             key=f"pdf_{saved_analysis.id}",
-                        )
+                        ):
+                            db = get_db()
+                            try:
+                                log_event(
+                                    db,
+                                    action="export",
+                                    user_email=st.session_state["user_email"],
+                                    target_type="analysis",
+                                    target_name=uploaded_file.name,
+                                    user_id=st.session_state["user_id"],
+                                    metadata_json={"company_name": company_name, "mode": "fresh"},
+                                )
+                            finally:
+                                db.close()
                     except Exception as exc:
                         st.error(f"Analysis failed: {exc}")
 
@@ -367,14 +509,27 @@ def render_dashboard():
             st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
             render_analysis(selected_analysis, selected_company, selected_document, selected_type)
             selected_pdf = build_analysis_pdf(selected_company, selected_document, selected_analysis)
-            st.download_button(
+            if st.download_button(
                 "Export Active Analysis",
                 data=selected_pdf,
                 file_name=f"{selected_company.lower().replace(' ', '_')}_active_analysis.pdf",
                 mime="application/pdf",
                 use_container_width=True,
                 key="active_pdf_export",
-            )
+            ):
+                db = get_db()
+                try:
+                    log_event(
+                        db,
+                        action="export",
+                        user_email=st.session_state["user_email"],
+                        target_type="analysis",
+                        target_name=selected_document,
+                        user_id=st.session_state["user_id"],
+                        metadata_json={"company_name": selected_company, "mode": "active"},
+                    )
+                finally:
+                    db.close()
 
         st.markdown("</div>", unsafe_allow_html=True)
 
@@ -394,15 +549,31 @@ def render_dashboard():
                         _remember_current_analysis(item.company_name, item.document_name, item.document_type, item.analysis_json)
                         st.rerun()
                     pdf_bytes = build_analysis_pdf(item.company_name, item.document_name, item.analysis_json)
-                    st.download_button(
+                    if st.download_button(
                         "Export PDF",
                         data=pdf_bytes,
                         file_name=f"{item.company_name.lower().replace(' ', '_')}_{item.id}.pdf",
                         mime="application/pdf",
                         use_container_width=True,
                         key=f"history_pdf_{item.id}",
-                    )
+                    ):
+                        db = get_db()
+                        try:
+                            log_event(
+                                db,
+                                action="export",
+                                user_email=st.session_state["user_email"],
+                                target_type="analysis",
+                                target_name=item.document_name,
+                                user_id=st.session_state["user_id"],
+                                metadata_json={"company_name": item.company_name, "mode": "history"},
+                            )
+                        finally:
+                            db.close()
         st.markdown("</div>", unsafe_allow_html=True)
+
+    if st.session_state["is_admin"]:
+        render_admin_panel()
 
     st.markdown("</div>", unsafe_allow_html=True)
 
