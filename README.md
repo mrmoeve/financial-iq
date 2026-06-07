@@ -2,6 +2,8 @@
 
 StatementIQ is a Streamlit-based SaaS MVP for analyzing annual reports, SEC filings, and core financial statements.
 
+AI-powered financial statement analysis platform for investors, lenders, founders, and analysts.
+
 ## Features
 
 - User accounts with email and password login
