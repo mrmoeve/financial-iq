@@ -55,3 +55,13 @@ streamlit run streamlit_app.py
 
 - The MVP works best with text-based PDFs.
 - If OpenAI output parsing fails, the app falls back to a deterministic local summary so the workflow still completes.
+
+## Render Deployment
+
+Render deployment files are included in this repo:
+
+- [render.yaml](/Users/mrmoeve/Documents/Financial%20IQ/render.yaml)
+- [requirements-prod.txt](/Users/mrmoeve/Documents/Financial%20IQ/requirements-prod.txt)
+- [docs/render-deployment.md](/Users/mrmoeve/Documents/Financial%20IQ/docs/render-deployment.md)
+- [docs/render-postgresql-setup.md](/Users/mrmoeve/Documents/Financial%20IQ/docs/render-postgresql-setup.md)
+- [docs/environment-variables.md](/Users/mrmoeve/Documents/Financial%20IQ/docs/environment-variables.md)
