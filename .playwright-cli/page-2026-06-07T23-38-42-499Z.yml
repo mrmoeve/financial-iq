@@ -1,0 +1,64 @@
+- generic [ref=e4]:
+  - banner:
+    - generic [ref=e9]:
+      - generic [ref=e153]:
+        - img "Running..." [ref=e154]
+        - button "Stop" [ref=e156] [cursor=pointer]
+      - button [ref=e11] [cursor=pointer]:
+        - img [ref=e12]
+  - generic [ref=e17]:
+    - generic [ref=e23]:
+      - generic [ref=e24]: Institutional Financial Intelligence
+      - generic [ref=e25]: StatementIQ
+      - generic [ref=e26]: Upload annual reports, 10-Ks, 10-Qs, and core financial statements into a workspace designed to feel closer to a professional research terminal than a generic upload form.
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - generic [ref=e29]: Coverage
+          - generic [ref=e30]: 10-K • 10-Q • Annual Reports
+        - generic [ref=e31]:
+          - generic [ref=e32]: Outputs
+          - generic [ref=e33]: Health Score • Risks • Ratios
+        - generic [ref=e34]:
+          - generic [ref=e35]: Workflow
+          - generic [ref=e36]: Upload → Analyze → Export
+        - generic [ref=e37]:
+          - generic [ref=e38]: Mode
+          - generic [ref=e39]: Investor-grade dashboard
+      - generic [ref=e40]:
+        - generic [ref=e43]:
+          - generic [ref=e44]: Structured underwriting lens
+          - generic [ref=e45]: Rapidly isolate operating quality, leverage pressure, cash flow durability, and the narrative behind the score.
+        - generic [ref=e48]:
+          - generic [ref=e49]: Persistent research history
+          - generic [ref=e50]: Each uploaded document is preserved as an analysis record with reusable summaries and PDF exports.
+        - generic [ref=e53]:
+          - generic [ref=e54]: Terminal-inspired interface
+          - generic [ref=e55]: Dark market-data styling, dense KPI cards, and cleaner reading surfaces for long-form filing review.
+    - generic [ref=e57]:
+      - generic [ref=e64]:
+        - generic [ref=e65]: Secure Workspace Access
+        - generic [ref=e66]: Sign in to your research environment
+        - generic [ref=e67]: Create an account or log in to continue analyzing statements and exporting investment-ready reports.
+      - generic [ref=e69]:
+        - tablist [ref=e71]:
+          - tab "Login" [ref=e72] [cursor=pointer]:
+            - paragraph [ref=e74]: Login
+          - tab "Create account" [selected] [ref=e75] [cursor=pointer]:
+            - paragraph [ref=e77]: Create account
+        - tabpanel "Create account" [ref=e120]:
+          - generic [ref=e124]:
+            - generic [ref=e126]:
+              - paragraph [ref=e129]: Work Email
+              - textbox "Work Email" [ref=e132]:
+                - /placeholder: team@statementiq.com
+                - text: qaadmincheck+20260607233746@example.com
+            - generic [ref=e134]:
+              - paragraph [ref=e137]: Create Password
+              - generic [ref=e139]:
+                - textbox "Create Password" [ref=e140]:
+                  - /placeholder: Use at least 8 characters
+                  - text: BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+                - button "Show password text" [ref=e141] [cursor=pointer]:
+                  - img "Show password text" [ref=e142]
+            - button "Create Workspace Access" [active] [ref=e147] [cursor=pointer]:
+              - paragraph [ref=e149]: Create Workspace Access
