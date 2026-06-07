@@ -1,5 +1,3 @@
-import uuid
-
 from sqlalchemy import desc, select
 
 from app.db.models import Analysis, User
@@ -43,8 +41,6 @@ def create_analysis(
 
 
 def list_analyses_for_user(db_session, user_id) -> list[Analysis]:
-    if isinstance(user_id, str):
-        user_id = uuid.UUID(user_id)
     result = db_session.execute(
         select(Analysis).where(Analysis.user_id == user_id).order_by(desc(Analysis.created_at))
     )

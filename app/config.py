@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     app_name: str = "StatementIQ"
     openai_api_key: str = ""
     openai_model: str = "gpt-4.1-mini"
-    database_url: str = "postgresql+psycopg://statementiq:statementiq@localhost:5432/statementiq"
+    database_url: str = "sqlite:///statementiq.db"
     secret_key: str = "replace-me"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")

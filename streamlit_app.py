@@ -1,5 +1,3 @@
-import uuid
-
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
@@ -153,7 +151,7 @@ def render_dashboard():
                         try:
                             saved_analysis = repository.create_analysis(
                                 db_session=db,
-                                user_id=uuid.UUID(st.session_state["user_id"]),
+                                user_id=st.session_state["user_id"],
                                 company_name=company_name,
                                 document_name=uploaded_file.name,
                                 document_type=document_type,
@@ -211,7 +209,7 @@ def render_dashboard():
 def main():
     init_session_state()
     if not DB_READY:
-        st.error("Database connection failed. Check `DATABASE_URL`, start PostgreSQL, and rerun the app.")
+        st.error("Database connection failed. Check `DATABASE_URL` and rerun the app.")
         st.stop()
     if not st.session_state["user_id"]:
         render_auth()

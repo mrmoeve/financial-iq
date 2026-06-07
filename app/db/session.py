@@ -5,7 +5,12 @@ from app.config import get_settings
 
 
 settings = get_settings()
-engine = create_engine(settings.normalized_database_url, future=True)
+database_url = settings.normalized_database_url
+engine_kwargs = {"future": True}
+if database_url.startswith("sqlite"):
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+
+engine = create_engine(database_url, **engine_kwargs)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
 Base = declarative_base()
 

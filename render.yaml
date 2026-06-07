@@ -2,7 +2,7 @@ services:
   - type: web
     name: statementiq
     runtime: python
-    plan: starter
+    plan: free
     region: oregon
     buildCommand: pip install -r requirements-prod.txt
     startCommand: bash start.sh
@@ -16,15 +16,5 @@ services:
         value: gpt-4.1-mini
       - key: SECRET_KEY
         generateValue: true
-      - key: DATABASE_URL
-        fromDatabase:
-          name: statementiq-db
-          property: connectionString
       - key: OPENAI_API_KEY
         sync: false
-
-databases:
-  - name: statementiq-db
-    databaseName: statementiq
-    plan: basic-256mb
-    region: oregon
