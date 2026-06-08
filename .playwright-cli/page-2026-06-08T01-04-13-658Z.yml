@@ -1,0 +1,166 @@
+- generic [ref=e4]:
+  - banner:
+    - button [ref=e16] [cursor=pointer]:
+      - img [ref=e17]
+  - generic [ref=e20]:
+    - generic [ref=e164]:
+      - generic [ref=e169]:
+        - generic [ref=e170]: Market Intelligence Platform
+        - generic [ref=e171]: StatementIQ Workspace
+        - generic [ref=e172]: Screen filings, evaluate financial strength, and turn dense disclosures into an organized decision-ready dashboard.
+      - generic [ref=e174]:
+        - generic [ref=e181]: sessionfix+20260608005751@example.com • user
+        - button "Log out" [ref=e187] [cursor=pointer]:
+          - paragraph [ref=e189]: Log out
+    - generic [ref=e193]:
+      - generic [ref=e194]:
+        - generic [ref=e195]: Financial Health
+        - generic [ref=e196]: "--"
+        - generic [ref=e197]: Upload a filing to generate the first score.
+      - generic [ref=e198]:
+        - generic [ref=e199]: Revenue
+        - generic [ref=e200]: Pending
+        - generic [ref=e201]: Trend signal appears after analysis completes.
+      - generic [ref=e202]:
+        - generic [ref=e203]: Debt
+        - generic [ref=e204]: Pending
+        - generic [ref=e205]: Leverage commentary appears after analysis completes.
+      - generic [ref=e206]:
+        - generic [ref=e207]: Cash Flow
+        - generic [ref=e208]: Pending
+        - generic [ref=e209]: Liquidity and cash conversion appear after analysis completes.
+      - generic [ref=e210]:
+        - generic [ref=e211]: Risk Level
+        - generic [ref=e212]: Pending
+        - generic [ref=e213]: Risk signal is derived from the score.
+    - generic [ref=e215]:
+      - generic [ref=e217]:
+        - generic [ref=e224]:
+          - generic [ref=e225]: New Analysis
+          - generic [ref=e226]: Upload a financial filing
+          - generic [ref=e227]: Drag in a text-based PDF, 10-K, 10-Q, or core statement to generate a structured institutional-style readout.
+        - generic [ref=e229]:
+          - paragraph [ref=e232]: Company Name
+          - textbox "Company Name" [ref=e235]:
+            - /placeholder: Apple Inc.
+            - text: Tesla
+        - generic [ref=e237]:
+          - paragraph [ref=e240]: Document Type
+          - generic [ref=e242]:
+            - generic [ref=e243]:
+              - generic [ref=e244]: Annual Report
+              - combobox "Selected Annual Report. Document Type" [ref=e246]
+            - img "open" [ref=e248] [cursor=pointer]
+        - generic [ref=e256]:
+          - generic [ref=e257]:
+            - paragraph [ref=e259]: Upload document (md, pdf, txt)
+            - img [ref=e263]
+          - region "Upload document (md, pdf, txt)" [ref=e266]:
+            - button "Choose File" [ref=e267]
+            - generic [ref=e268]:
+              - img [ref=e270]
+              - generic [ref=e273]:
+                - generic [ref=e274]: Drag and drop file here
+                - generic [ref=e275]: Limit 200MB per file • PDF, MD, TXT
+            - button "Browse files" [ref=e276] [cursor=pointer]
+          - list [ref=e300]:
+            - listitem [ref=e301]:
+              - generic [ref=e302]:
+                - img [ref=e304]
+                - generic [ref=e307]:
+                  - generic "statementiq-session-fix-sample.txt" [ref=e308]
+                  - generic [ref=e309]: 87.0B
+                - button [ref=e311] [cursor=pointer]:
+                  - img [ref=e312]
+        - button "Analyze Document" [active] [ref=e279] [cursor=pointer]:
+          - paragraph [ref=e281]: Analyze Document
+        - alert [ref=e317]:
+          - paragraph [ref=e322]: Analysis complete.
+        - generic [ref=e330]:
+          - generic [ref=e331]:
+            - generic [ref=e332]: Statement Intelligence Workspace
+            - generic [ref=e333]: Tesla
+            - generic [ref=e334]:
+              - text: Annual Report review for
+              - strong [ref=e335]: statementiq-session-fix-sample.txt
+              - text: . The layout below highlights the health score, directional signals, and the most important investor-facing findings from the uploaded filing.
+          - generic [ref=e336]:
+            - generic [ref=e337]: Analysis Ready
+            - generic [ref=e339]: Elevated Risk
+        - generic [ref=e343]:
+          - generic [ref=e344]:
+            - generic [ref=e345]: Financial Health
+            - generic [ref=e346]: 60/100
+            - generic [ref=e347]: Composite quality score from the uploaded filing
+          - generic [ref=e348]:
+            - generic [ref=e349]: Revenue
+            - generic [ref=e350]: Stable
+            - generic [ref=e351]: Revenue trend indicators should be confirmed against period-over-period figures in the source filing
+          - generic [ref=e352]:
+            - generic [ref=e353]: Debt
+            - generic [ref=e354]: Watch
+            - generic [ref=e355]: Debt obligations and leverage should be reviewed carefully because the extracted text alone may not preserve note detail
+          - generic [ref=e356]:
+            - generic [ref=e357]: Cash Flow
+            - generic [ref=e358]: Mixed
+            - generic [ref=e359]: Cash flow quality cannot be fully confirmed unless the statement of cash flows and related notes are clearly present
+          - generic [ref=e360]:
+            - generic [ref=e361]: Risk Level
+            - generic [ref=e362]: Elevated Risk
+            - generic [ref=e363]: Derived from the current financial health score
+        - generic [ref=e365]:
+          - generic [ref=e367]:
+            - generic [ref=e370]:
+              - generic [ref=e371]: Executive View
+              - generic [ref=e372]: Executive Summary
+              - generic [ref=e373]: This filing presents a mixed but investable profile based on the extracted disclosures.
+            - generic [ref=e377]:
+              - generic [ref=e378]:
+                - generic [ref=e379]: Revenue Trends
+                - generic [ref=e380]: Revenue trend indicators should be confirmed against period-over-period figures in the source filing.
+              - generic [ref=e381]:
+                - generic [ref=e382]: Profitability Trends
+                - generic [ref=e383]: Profitability appears stable to mixed based on the available narrative, but exact margin trends are not clearly disclosed.
+              - generic [ref=e384]:
+                - generic [ref=e385]: Debt Analysis
+                - generic [ref=e386]: Debt obligations and leverage should be reviewed carefully because the extracted text alone may not preserve note detail.
+              - generic [ref=e387]:
+                - generic [ref=e388]: Cash Flow Analysis
+                - generic [ref=e389]: Cash flow quality cannot be fully confirmed unless the statement of cash flows and related notes are clearly present.
+          - generic [ref=e391]:
+            - generic [ref=e399]: Strengths
+            - generic [ref=e403]:
+              - generic [ref=e404]: The document contains detailed financial disclosures that support structured review.
+              - generic [ref=e405]: Reported scale appears meaningful relative to smaller issuers.
+              - generic [ref=e406]: Management commentary and statement sections provide enough context for an initial assessment.
+            - generic [ref=e417]: Risks
+            - generic [ref=e421]:
+              - generic [ref=e422]: The uploaded text may omit tables or scanned content that could alter the conclusion.
+              - generic [ref=e423]: Debt, liquidity, or margin signals may not be fully quantified in the extracted text.
+              - generic [ref=e424]: This MVP summary is directional and should be validated against source statements.
+        - generic [ref=e427]:
+          - generic [ref=e428]: Quant Layer
+          - generic [ref=e429]: Key Financial Ratios
+          - generic [ref=e430]: Ratio interpretations are preserved alongside the qualitative read so you can screen quickly.
+        - generic [ref=e435]:
+          - button "Show/hide columns" [ref=e439] [cursor=pointer]:
+            - img [ref=e440]
+          - button "Download as CSV" [ref=e445] [cursor=pointer]:
+            - img [ref=e446]
+          - button "Search" [ref=e451] [cursor=pointer]:
+            - img [ref=e452]
+          - button "Fullscreen" [ref=e457] [cursor=pointer]:
+            - img [ref=e458]
+        - generic [ref=e479]: Investor Takeaways
+        - generic [ref=e483]:
+          - generic [ref=e484]: Use this report as a first-pass screening view rather than a final investment opinion.
+          - generic [ref=e485]: Cross-check headline conclusions against the original tables and footnotes.
+          - generic [ref=e486]: Prioritize revenue growth, margins, leverage, and operating cash flow in follow-up review.
+        - button "Download PDF Report" [ref=e489] [cursor=pointer]:
+          - paragraph [ref=e491]: Download PDF Report
+      - generic [ref=e283]:
+        - generic [ref=e290]:
+          - generic [ref=e291]: Research Log
+          - generic [ref=e292]: Analysis history
+          - generic [ref=e293]: Reopen past analyses, compare score snapshots, and export prior reports without rerunning the filing.
+        - paragraph [ref=e297]: No analyses yet. Upload a financial document to populate the research log.

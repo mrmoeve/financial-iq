@@ -1,0 +1,82 @@
+- generic [ref=e4]:
+  - banner:
+    - button [ref=e16] [cursor=pointer]:
+      - img [ref=e17]
+  - generic [ref=e20]:
+    - generic [ref=e164]:
+      - generic [ref=e169]:
+        - generic [ref=e170]: Market Intelligence Platform
+        - generic [ref=e171]: StatementIQ Workspace
+        - generic [ref=e172]: Screen filings, evaluate financial strength, and turn dense disclosures into an organized decision-ready dashboard.
+      - generic [ref=e174]:
+        - generic [ref=e181]: sessionfix+20260608005751@example.com • user
+        - button "Log out" [ref=e187] [cursor=pointer]:
+          - paragraph [ref=e189]: Log out
+    - generic [ref=e193]:
+      - generic [ref=e194]:
+        - generic [ref=e195]: Financial Health
+        - generic [ref=e196]: "--"
+        - generic [ref=e197]: Upload a filing to generate the first score.
+      - generic [ref=e198]:
+        - generic [ref=e199]: Revenue
+        - generic [ref=e200]: Pending
+        - generic [ref=e201]: Trend signal appears after analysis completes.
+      - generic [ref=e202]:
+        - generic [ref=e203]: Debt
+        - generic [ref=e204]: Pending
+        - generic [ref=e205]: Leverage commentary appears after analysis completes.
+      - generic [ref=e206]:
+        - generic [ref=e207]: Cash Flow
+        - generic [ref=e208]: Pending
+        - generic [ref=e209]: Liquidity and cash conversion appear after analysis completes.
+      - generic [ref=e210]:
+        - generic [ref=e211]: Risk Level
+        - generic [ref=e212]: Pending
+        - generic [ref=e213]: Risk signal is derived from the score.
+    - generic [ref=e215]:
+      - generic [ref=e217]:
+        - generic [ref=e224]:
+          - generic [ref=e225]: New Analysis
+          - generic [ref=e226]: Upload a financial filing
+          - generic [ref=e227]: Drag in a text-based PDF, 10-K, 10-Q, or core statement to generate a structured institutional-style readout.
+        - generic [ref=e229]:
+          - paragraph [ref=e232]: Company Name
+          - textbox "Company Name" [ref=e235]:
+            - /placeholder: Apple Inc.
+            - text: Tesla
+        - generic [ref=e237]:
+          - paragraph [ref=e240]: Document Type
+          - generic [ref=e242]:
+            - generic [ref=e243]:
+              - generic [ref=e244]: Annual Report
+              - combobox "Selected Annual Report. Document Type" [ref=e246]
+            - img "open" [ref=e248] [cursor=pointer]
+        - generic [ref=e256]:
+          - generic [ref=e257]:
+            - paragraph [ref=e259]: Upload document (md, pdf, txt)
+            - img [ref=e263]
+          - region "Upload document (md, pdf, txt)" [ref=e266]:
+            - button "Choose File" [ref=e267]
+            - generic [ref=e268]:
+              - img [ref=e270]
+              - generic [ref=e273]:
+                - generic [ref=e274]: Drag and drop file here
+                - generic [ref=e275]: Limit 200MB per file • PDF, MD, TXT
+            - button "Browse files" [active] [ref=e276] [cursor=pointer]
+          - list [ref=e300]:
+            - listitem [ref=e301]:
+              - generic [ref=e302]:
+                - img [ref=e304]
+                - generic [ref=e307]:
+                  - generic "statementiq-session-fix-sample.txt" [ref=e308]
+                  - generic [ref=e309]: 87.0B
+                - button [ref=e311] [cursor=pointer]:
+                  - img [ref=e312]
+        - button "Analyze Document" [ref=e279] [cursor=pointer]:
+          - paragraph [ref=e281]: Analyze Document
+      - generic [ref=e283]:
+        - generic [ref=e290]:
+          - generic [ref=e291]: Research Log
+          - generic [ref=e292]: Analysis history
+          - generic [ref=e293]: Reopen past analyses, compare score snapshots, and export prior reports without rerunning the filing.
+        - paragraph [ref=e297]: No analyses yet. Upload a financial document to populate the research log.
