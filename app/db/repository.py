@@ -15,6 +15,42 @@ def is_admin_email(email: str) -> bool:
     return _normalize_email(email) == _normalize_email(settings.admin_email)
 
 
+def serialize_user(user: User) -> dict:
+    return {
+        "id": user.id,
+        "email": user.email,
+        "is_admin": bool(user.is_admin),
+        "created_at": user.created_at,
+    }
+
+
+def serialize_analysis(analysis: Analysis) -> dict:
+    return {
+        "id": analysis.id,
+        "user_id": analysis.user_id,
+        "company_name": analysis.company_name,
+        "document_name": analysis.document_name,
+        "document_type": analysis.document_type,
+        "extracted_text": analysis.extracted_text,
+        "analysis_json": analysis.analysis_json,
+        "financial_health_score": analysis.financial_health_score,
+        "created_at": analysis.created_at,
+    }
+
+
+def serialize_audit_log(audit_log: AuditLog) -> dict:
+    return {
+        "id": audit_log.id,
+        "user_id": audit_log.user_id,
+        "user_email": audit_log.user_email,
+        "action": audit_log.action,
+        "target_type": audit_log.target_type,
+        "target_name": audit_log.target_name,
+        "metadata_json": audit_log.metadata_json,
+        "created_at": audit_log.created_at,
+    }
+
+
 def get_user_by_email(db_session, email: str) -> User | None:
     return db_session.execute(select(User).where(User.email == _normalize_email(email))).scalar_one_or_none()
 
@@ -46,7 +82,7 @@ def create_analysis(
     extracted_text: str,
     analysis_json: dict,
     financial_health_score: int,
-) -> Analysis:
+) -> dict:
     analysis = Analysis(
         user_id=user_id,
         company_name=company_name,
@@ -59,14 +95,14 @@ def create_analysis(
     db_session.add(analysis)
     db_session.commit()
     db_session.refresh(analysis)
-    return analysis
+    return serialize_analysis(analysis)
 
 
-def list_analyses_for_user(db_session, user_id) -> list[Analysis]:
+def list_analyses_for_user(db_session, user_id) -> list[dict]:
     result = db_session.execute(
         select(Analysis).where(Analysis.user_id == user_id).order_by(desc(Analysis.created_at))
     )
-    return list(result.scalars().all())
+    return [serialize_analysis(item) for item in result.scalars().all()]
 
 
 def create_audit_log(
@@ -77,7 +113,7 @@ def create_audit_log(
     target_name: str = "",
     user_id: str | None = None,
     metadata_json: dict | None = None,
-) -> AuditLog:
+) -> dict:
     audit_log = AuditLog(
         user_id=user_id,
         user_email=_normalize_email(user_email),
@@ -89,22 +125,22 @@ def create_audit_log(
     db_session.add(audit_log)
     db_session.commit()
     db_session.refresh(audit_log)
-    return audit_log
+    return serialize_audit_log(audit_log)
 
 
-def list_all_users(db_session) -> list[User]:
+def list_all_users(db_session) -> list[dict]:
     result = db_session.execute(select(User).order_by(desc(User.created_at)))
-    return list(result.scalars().all())
+    return [serialize_user(item) for item in result.scalars().all()]
 
 
-def list_recent_analyses(db_session, limit: int = 100) -> list[Analysis]:
+def list_recent_analyses(db_session, limit: int = 100) -> list[dict]:
     result = db_session.execute(select(Analysis).order_by(desc(Analysis.created_at)).limit(limit))
-    return list(result.scalars().all())
+    return [serialize_analysis(item) for item in result.scalars().all()]
 
 
-def list_recent_audit_logs(db_session, limit: int = 200) -> list[AuditLog]:
+def list_recent_audit_logs(db_session, limit: int = 200) -> list[dict]:
     result = db_session.execute(select(AuditLog).order_by(desc(AuditLog.created_at)).limit(limit))
-    return list(result.scalars().all())
+    return [serialize_audit_log(item) for item in result.scalars().all()]
 
 
 def get_platform_metrics(db_session) -> dict:

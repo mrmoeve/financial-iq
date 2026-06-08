@@ -10,6 +10,8 @@ from app.db.repository import (
     create_user,
     ensure_admin_bootstrap,
     get_platform_metrics,
+    list_analyses_for_user,
+    list_recent_analyses,
     list_recent_audit_logs,
 )
 from app.utils.admin import is_admin_email, is_admin_user
@@ -49,8 +51,8 @@ class AdminAndAuditTest(unittest.TestCase):
         create_audit_log(self.db, "signup", user.email, "auth", "signup", user.id)
         logs = list_recent_audit_logs(self.db)
         self.assertEqual(len(logs), 2)
-        self.assertEqual(logs[0].action, "signup")
-        self.assertEqual(logs[1].action, "login")
+        self.assertEqual(logs[0]["action"], "signup")
+        self.assertEqual(logs[1]["action"], "login")
 
     def test_platform_metrics_include_users_analyses_and_audit_events(self):
         user = create_user(self.db, "user@example.com", "hashed")
@@ -71,6 +73,57 @@ class AdminAndAuditTest(unittest.TestCase):
         self.assertEqual(metrics["total_analyses"], 1)
         self.assertEqual(metrics["total_audit_events"], 1)
         self.assertEqual(metrics["average_health_score"], 82.0)
+
+    def test_analysis_persistence_returns_serialized_dto_safe_after_session_close(self):
+        user = create_user(self.db, "user@example.com", "hashed")
+        saved = create_analysis(
+            self.db,
+            user_id=user.id,
+            company_name="Tesla",
+            document_name="tesla-10k.pdf",
+            document_type="10-K",
+            extracted_text="Revenue improved.",
+            analysis_json={"financial_health_score": 75, "executive_summary": "Stable."},
+            financial_health_score=75,
+        )
+        self.db.close()
+
+        self.assertEqual(saved["company_name"], "Tesla")
+        self.assertEqual(saved["document_name"], "tesla-10k.pdf")
+        self.assertEqual(saved["financial_health_score"], 75)
+        self.assertEqual(saved["analysis_json"]["executive_summary"], "Stable.")
+
+    def test_analysis_history_retrieval_returns_serialized_records(self):
+        user = create_user(self.db, "user@example.com", "hashed")
+        create_analysis(
+            self.db,
+            user_id=user.id,
+            company_name="First Co",
+            document_name="first.pdf",
+            document_type="10-Q",
+            extracted_text="First text",
+            analysis_json={"financial_health_score": 70},
+            financial_health_score=70,
+        )
+        create_analysis(
+            self.db,
+            user_id=user.id,
+            company_name="Second Co",
+            document_name="second.pdf",
+            document_type="10-K",
+            extracted_text="Second text",
+            analysis_json={"financial_health_score": 88},
+            financial_health_score=88,
+        )
+
+        history = list_analyses_for_user(self.db, user.id)
+        recent = list_recent_analyses(self.db, limit=10)
+        self.db.close()
+
+        self.assertEqual(history[0]["company_name"], "Second Co")
+        self.assertEqual(history[1]["company_name"], "First Co")
+        self.assertEqual(recent[0]["document_name"], "second.pdf")
+        self.assertEqual(recent[1]["document_name"], "first.pdf")
 
 
 if __name__ == "__main__":

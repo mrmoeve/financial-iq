@@ -203,9 +203,9 @@ def render_admin_panel():
     with admin_tabs[0]:
         user_rows = [
             {
-                "Email": user.email,
-                "Admin": "Yes" if user.is_admin else "No",
-                "Created": user.created_at.strftime("%Y-%m-%d %H:%M UTC"),
+                "Email": user["email"],
+                "Admin": "Yes" if user["is_admin"] else "No",
+                "Created": user["created_at"].strftime("%Y-%m-%d %H:%M UTC"),
             }
             for user in users
         ]
@@ -214,11 +214,11 @@ def render_admin_panel():
     with admin_tabs[1]:
         document_rows = [
             {
-                "Company": analysis.company_name,
-                "Document": analysis.document_name,
-                "Type": analysis.document_type,
-                "Score": analysis.financial_health_score,
-                "Created": analysis.created_at.strftime("%Y-%m-%d %H:%M UTC"),
+                "Company": analysis["company_name"],
+                "Document": analysis["document_name"],
+                "Type": analysis["document_type"],
+                "Score": analysis["financial_health_score"],
+                "Created": analysis["created_at"].strftime("%Y-%m-%d %H:%M UTC"),
             }
             for analysis in analyses
         ]
@@ -227,11 +227,11 @@ def render_admin_panel():
     with admin_tabs[2]:
         audit_rows = [
             {
-                "When": event.created_at.strftime("%Y-%m-%d %H:%M UTC"),
-                "User": event.user_email,
-                "Action": event.action,
-                "Target Type": event.target_type,
-                "Target": event.target_name,
+                "When": event["created_at"].strftime("%Y-%m-%d %H:%M UTC"),
+                "User": event["user_email"],
+                "Action": event["action"],
+                "Target Type": event["target_type"],
+                "Target": event["target_name"],
             }
             for event in audit_logs
         ]
@@ -363,10 +363,10 @@ def _remember_current_analysis(company_name: str, document_name: str, document_t
 
 def render_dashboard():
     analyses = _load_history()
-    selected_analysis = st.session_state["current_analysis"] or (analyses[0].analysis_json if analyses else None)
-    selected_company = st.session_state["current_company_name"] or (analyses[0].company_name if analyses else "No company selected")
-    selected_document = st.session_state["current_document_name"] or (analyses[0].document_name if analyses else "Awaiting upload")
-    selected_type = st.session_state["current_document_type"] or (analyses[0].document_type if analyses else "Uploaded Document")
+    selected_analysis = st.session_state["current_analysis"] or (analyses[0]["analysis_json"] if analyses else None)
+    selected_company = st.session_state["current_company_name"] or (analyses[0]["company_name"] if analyses else "No company selected")
+    selected_document = st.session_state["current_document_name"] or (analyses[0]["document_name"] if analyses else "Awaiting upload")
+    selected_type = st.session_state["current_document_type"] or (analyses[0]["document_type"] if analyses else "Uploaded Document")
 
     st.markdown("<div class='platform-shell'>", unsafe_allow_html=True)
     header_left, header_right = st.columns([4.3, 1], gap="large")
@@ -437,6 +437,8 @@ def render_dashboard():
                 st.error("Company name and upload are required.")
             else:
                 with st.spinner("Extracting text and generating analysis..."):
+                    extracted_text = None
+                    analysis = None
                     try:
                         extracted_text = extract_text_from_upload(uploaded_file)
                         db = get_db()
@@ -453,57 +455,67 @@ def render_dashboard():
                         finally:
                             db.close()
                         analysis = analyze_financial_document(extracted_text)
-                        db = get_db()
-                        try:
-                            saved_analysis = repository.create_analysis(
-                                db_session=db,
-                                user_id=st.session_state["user_id"],
-                                company_name=company_name,
-                                document_name=uploaded_file.name,
-                                document_type=document_type,
-                                extracted_text=extracted_text,
-                                analysis_json=analysis,
-                                financial_health_score=analysis["financial_health_score"],
-                            )
-                            log_event(
-                                db,
-                                action="analysis_generation",
-                                user_email=st.session_state["user_email"],
-                                target_type="analysis",
-                                target_name=uploaded_file.name,
-                                user_id=st.session_state["user_id"],
-                                metadata_json={"company_name": company_name, "score": analysis["financial_health_score"]},
-                            )
-                        finally:
-                            db.close()
+                    except Exception:
+                        st.error("Analysis could not be completed. Please try again with a readable filing.")
+                        analysis = None
 
-                        _remember_current_analysis(company_name, uploaded_file.name, document_type, analysis)
-                        st.success("Analysis complete.")
-                        render_analysis(analysis, company_name, uploaded_file.name, document_type)
-                        pdf_bytes = build_analysis_pdf(company_name, uploaded_file.name, analysis)
-                        if st.download_button(
-                            "Download PDF Report",
-                            data=pdf_bytes,
-                            file_name=f"{company_name.lower().replace(' ', '_')}_statementiq_report.pdf",
-                            mime="application/pdf",
-                            use_container_width=True,
-                            key=f"pdf_{saved_analysis.id}",
-                        ):
+                    if analysis is not None:
+                        try:
                             db = get_db()
                             try:
+                                saved_analysis = repository.create_analysis(
+                                    db_session=db,
+                                    user_id=st.session_state["user_id"],
+                                    company_name=company_name,
+                                    document_name=uploaded_file.name,
+                                    document_type=document_type,
+                                    extracted_text=extracted_text,
+                                    analysis_json=analysis,
+                                    financial_health_score=analysis["financial_health_score"],
+                                )
                                 log_event(
                                     db,
-                                    action="export",
+                                    action="analysis_generation",
                                     user_email=st.session_state["user_email"],
                                     target_type="analysis",
                                     target_name=uploaded_file.name,
                                     user_id=st.session_state["user_id"],
-                                    metadata_json={"company_name": company_name, "mode": "fresh"},
+                                    metadata_json={"company_name": company_name, "score": analysis["financial_health_score"]},
                                 )
                             finally:
                                 db.close()
-                    except Exception as exc:
-                        st.error(f"Analysis failed: {exc}")
+
+                            _remember_current_analysis(company_name, uploaded_file.name, document_type, analysis)
+                            st.success("Analysis complete.")
+                            render_analysis(analysis, company_name, uploaded_file.name, document_type)
+                            pdf_bytes = build_analysis_pdf(company_name, uploaded_file.name, analysis)
+                            if st.download_button(
+                                "Download PDF Report",
+                                data=pdf_bytes,
+                                file_name=f"{company_name.lower().replace(' ', '_')}_statementiq_report.pdf",
+                                mime="application/pdf",
+                                use_container_width=True,
+                                key=f'pdf_{saved_analysis["id"]}',
+                            ):
+                                db = get_db()
+                                try:
+                                    log_event(
+                                        db,
+                                        action="export",
+                                        user_email=st.session_state["user_email"],
+                                        target_type="analysis",
+                                        target_name=uploaded_file.name,
+                                        user_id=st.session_state["user_id"],
+                                        metadata_json={"company_name": company_name, "mode": "fresh"},
+                                    )
+                                finally:
+                                    db.close()
+                        except SQLAlchemyError:
+                            _remember_current_analysis(company_name, uploaded_file.name, document_type, analysis)
+                            st.warning("Analysis completed, but we could not save it to history. Please try again in a moment.")
+                            render_analysis(analysis, company_name, uploaded_file.name, document_type)
+                        except Exception:
+                            st.error("Analysis completed, but we hit an unexpected issue while saving the result.")
 
         if selected_analysis:
             st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
@@ -540,22 +552,22 @@ def render_dashboard():
             st.caption("No analyses yet. Upload a financial document to populate the research log.")
         else:
             for item in analyses:
-                risk_label, risk_tone = derive_risk_level(item.financial_health_score)
-                with st.expander(f"{item.company_name} • {item.document_type} • {item.financial_health_score}/100"):
+                risk_label, risk_tone = derive_risk_level(item["financial_health_score"])
+                with st.expander(f'{item["company_name"]} • {item["document_type"]} • {item["financial_health_score"]}/100'):
                     st.markdown(f"<div class='signal-badge {risk_tone}'>{risk_label}</div>", unsafe_allow_html=True)
-                    st.caption(item.created_at.strftime("%Y-%m-%d %H:%M UTC"))
-                    st.write(item.document_name)
-                    if st.button("Open Analysis", key=f"open_{item.id}", use_container_width=True):
-                        _remember_current_analysis(item.company_name, item.document_name, item.document_type, item.analysis_json)
+                    st.caption(item["created_at"].strftime("%Y-%m-%d %H:%M UTC"))
+                    st.write(item["document_name"])
+                    if st.button("Open Analysis", key=f'open_{item["id"]}', use_container_width=True):
+                        _remember_current_analysis(item["company_name"], item["document_name"], item["document_type"], item["analysis_json"])
                         st.rerun()
-                    pdf_bytes = build_analysis_pdf(item.company_name, item.document_name, item.analysis_json)
+                    pdf_bytes = build_analysis_pdf(item["company_name"], item["document_name"], item["analysis_json"])
                     if st.download_button(
                         "Export PDF",
                         data=pdf_bytes,
-                        file_name=f"{item.company_name.lower().replace(' ', '_')}_{item.id}.pdf",
+                        file_name=f'{item["company_name"].lower().replace(" ", "_")}_{item["id"]}.pdf',
                         mime="application/pdf",
                         use_container_width=True,
-                        key=f"history_pdf_{item.id}",
+                        key=f'history_pdf_{item["id"]}',
                     ):
                         db = get_db()
                         try:
@@ -564,9 +576,9 @@ def render_dashboard():
                                 action="export",
                                 user_email=st.session_state["user_email"],
                                 target_type="analysis",
-                                target_name=item.document_name,
+                                target_name=item["document_name"],
                                 user_id=st.session_state["user_id"],
-                                metadata_json={"company_name": item.company_name, "mode": "history"},
+                                metadata_json={"company_name": item["company_name"], "mode": "history"},
                             )
                         finally:
                             db.close()
