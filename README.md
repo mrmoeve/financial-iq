@@ -1,67 +1,68 @@
-# StatementIQ
+# LinkedIn Job Search Tracker
 
-StatementIQ is a Streamlit-based SaaS MVP for analyzing annual reports, SEC filings, and core financial statements.
-
-AI-powered financial statement analysis platform for investors, lenders, founders, and analysts.
+LinkedIn Job Search Tracker is a Next.js app that connects to Gmail, detects job-search activity, stores it in SQLite, and renders a dashboard plus an NYS work-search PDF export.
 
 ## Features
 
-- User accounts with email and password login
-- Upload PDF and text-based financial documents
-- Financial statement extraction
-- OpenAI-powered analysis with a structured output
-- Financial Health Score, trends, ratios, risks, strengths, and takeaways
-- PostgreSQL-backed analysis history
-- PDF report export
-- Responsive Streamlit interface
-
-## Project Structure
-
-```text
-app/
-  components/
-  db/
-  services/
-  utils/
-assets/
-sql/
-streamlit_app.py
-requirements.txt
-```
+- Google OAuth authentication
+- Gmail read-only sync for LinkedIn and common recruiting systems
+- Detection for:
+  - Job applications
+  - Application confirmations
+  - Interview invitations
+  - Recruiter outreach
+- Field extraction for date, company, job title, recruiter name, and interview date
+- SQLite storage using `better-sqlite3`
+- Dashboard metrics for total applications, weekly applications, interviews, recruiter contacts, and companies applied to
+- NYS work-search PDF export
+- Vercel cron endpoint for scheduled sync
 
 ## Local Setup
 
-1. Create and activate a virtual environment.
-2. Install dependencies:
+1. Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+npm install
 ```
 
-3. Create PostgreSQL database and user, then run:
+2. Copy `.env.example` to `.env.local` and set:
 
 ```bash
-psql -d statementiq -f sql/schema.sql
+AUTH_SECRET=
+AUTH_GOOGLE_ID=
+AUTH_GOOGLE_SECRET=
+NEXTAUTH_URL=http://localhost:3000
+CRON_SECRET=
+GMAIL_SYNC_LOOKBACK_DAYS=30
 ```
 
-4. Copy `.env.example` to `.env` and fill in your values.
-5. Start the app:
+3. In Google Cloud Console:
+
+- Enable Gmail API
+- Configure a Google OAuth web application
+- Add `http://localhost:3000/api/auth/callback/google` as an authorized redirect URI
+
+4. Start the app:
 
 ```bash
-streamlit run streamlit_app.py
+npm run dev
 ```
 
-## Notes
+5. Sign in with Google and click `Sync Gmail`.
 
-- The MVP works best with text-based PDFs.
-- If OpenAI output parsing fails, the app falls back to a deterministic local summary so the workflow still completes.
+## Production Notes
 
-## Render Deployment
+- The app stores data in a local SQLite file named `job-tracker.db`.
+- Vercel’s filesystem is ephemeral, so SQLite is suitable for local development and non-persistent previews.
+- For durable Vercel production storage, keep the current repository layout and swap the repository layer to a hosted SQLite-compatible service such as Turso or to Vercel Postgres.
+- Add your production callback URI:
+  - `https://YOUR_DOMAIN/api/auth/callback/google`
+- Protect the cron endpoint by setting `CRON_SECRET` and sending `Authorization: Bearer YOUR_SECRET`.
 
-Render deployment files are included in this repo:
+## Routes
 
-- [render.yaml](/Users/mrmoeve/Documents/Financial%20IQ/render.yaml)
-- [requirements-prod.txt](/Users/mrmoeve/Documents/Financial%20IQ/requirements-prod.txt)
-- [docs/render-deployment.md](/Users/mrmoeve/Documents/Financial%20IQ/docs/render-deployment.md)
-- [docs/render-postgresql-setup.md](/Users/mrmoeve/Documents/Financial%20IQ/docs/render-postgresql-setup.md)
-- [docs/environment-variables.md](/Users/mrmoeve/Documents/Financial%20IQ/docs/environment-variables.md)
+- `/` dashboard
+- `/signin` Google sign-in
+- `/api/sync` manual Gmail sync
+- `/api/cron/sync` scheduled sync
+- `/api/report` NYS PDF export
